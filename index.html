@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Betel</title>
-  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="icon" type="image/svg+xml" href="https://freesvg.org/black-wolf" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
@@ -33,7 +33,6 @@
       border: none;
       opacity: 1;
       transition: opacity 0.4s ease-in-out;
-      z-index: 1; /* 🔹 Mantém o iframe abaixo do botão */
     }
 
     .hidden {
@@ -45,8 +44,7 @@
       position: fixed;
       top: 15px;
       right: 20px;
-      z-index: 100; /* 🔹 Garante que o botão fique acima do iframe */
-      pointer-events: auto;
+      z-index: 10;
     }
 
     .refresh-btn {
@@ -103,7 +101,6 @@
       font-size: 17px;
       color: #333;
       display: none;
-      z-index: 10;
     }
 
     .loading.visible {
@@ -128,7 +125,7 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.2);
       opacity: 0;
       transition: opacity 0.4s ease;
-      z-index: 200; /* 🔹 Toast também acima de tudo */
+      z-index: 20;
       font-size: 14px;
     }
 
@@ -157,7 +154,7 @@
       id="dashFrame"
       title="Dashboard"
       src="https://app.powerbi.com/view?r=eyJrIjoiZjgwMTgyYzktYjAwMi00ODNhLTljMmMtZmI2MGJjMTQzOTBiIiwidCI6ImM3NGViY2JkLWE4MGYtNDYwYy1hMDUzLTEwZDViNmY1ZWQwNSJ9"
-      allowfullscreen>
+      allowFullScreen="true">
     </iframe>
   </div>
 
@@ -204,9 +201,6 @@
         refreshDashboard();
       }
     });
-
-    // Clique no botão
-    refreshBtn.addEventListener("click", refreshDashboard);
   </script>
 
 </body>
