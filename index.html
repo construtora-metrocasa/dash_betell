@@ -7,13 +7,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
+    /* ====== ESTILOS GERAIS ====== */
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
       width: 100%;
+      background: #f4f6f8;
+      font-family: "Segoe UI", system-ui, sans-serif;
       overflow: hidden;
-      background: #f5f5f5;
     }
 
     .iframe-container {
@@ -29,40 +31,183 @@
       width: 100%;
       height: 100%;
       border: none;
-      transition: opacity 0.5s ease-in-out;
+      opacity: 1;
+      transition: opacity 0.4s ease-in-out;
+      z-index: 1; /* 🔹 Mantém o iframe abaixo do botão */
     }
 
     .hidden {
       opacity: 0;
     }
+
+    /* ====== BOTÃO DE ATUALIZAR ====== */
+    .control-bar {
+      position: fixed;
+      top: 15px;
+      right: 20px;
+      z-index: 100; /* 🔹 Garante que o botão fique acima do iframe */
+      pointer-events: auto;
+    }
+
+    .refresh-btn {
+      background: #0078d7;
+      border: none;
+      border-radius: 50%;
+      width: 52px;
+      height: 52px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    .refresh-btn:hover {
+      background: #005fa3;
+      transform: scale(1.08);
+    }
+
+    .refresh-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* Ícone SVG (ouroboros) */
+    .refresh-icon {
+      width: 26px;
+      height: 26px;
+      fill: none;
+      stroke: white;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: transform 0.6s ease;
+    }
+
+    /* Animação de rotação */
+    .rotate {
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* ====== LOADING ====== */
+    .loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 17px;
+      color: #333;
+      display: none;
+      z-index: 10;
+    }
+
+    .loading.visible {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* ====== TOAST ====== */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #00b050;
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      z-index: 200; /* 🔹 Toast também acima de tudo */
+      font-size: 14px;
+    }
+
+    .toast.visible {
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
 
+  <!-- Botão de atualização -->
+  <div class="control-bar">
+    <button id="refreshBtn" class="refresh-btn" title="Atualizar (A ou F5)">
+      <svg id="refreshIcon" class="refresh-icon" viewBox="0 0 24 24">
+        <path d="M21 12a9 9 0 1 1-3.17-6.83"/>
+        <polyline points="21 3 21 9 15 9"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Container principal -->
   <div class="iframe-container">
+    <div id="loading" class="loading">Atualizando dashboard...</div>
+
     <iframe 
       id="dashFrame"
       title="Dashboard"
       src="https://app.powerbi.com/view?r=eyJrIjoiZjgwMTgyYzktYjAwMi00ODNhLTljMmMtZmI2MGJjMTQzOTBiIiwidCI6ImM3NGViY2JkLWE4MGYtNDYwYy1hMDUzLTEwZDViNmY1ZWQwNSJ9"
-      allowFullScreen="true">
+      allowfullscreen>
     </iframe>
   </div>
 
+  <!-- Toast -->
+  <div id="toast" class="toast">✔️ Dashboard atualizado com sucesso</div>
+
   <script>
     const iframe = document.getElementById("dashFrame");
-    const refreshInterval = 5 * 60 * 1000; // 5 minutos
+    const loading = document.getElementById("loading");
+    const refreshBtn = document.getElementById("refreshBtn");
+    const refreshIcon = document.getElementById("refreshIcon");
+    const toast = document.getElementById("toast");
 
-    // Atualização automática do iframe com efeito de fade
-    setInterval(() => {
-      iframe.classList.add("hidden"); // fade-out
+    // Atualiza o dashboard
+    function refreshDashboard() {
+      loading.classList.add("visible");
+      iframe.classList.add("hidden");
+      refreshIcon.classList.add("rotate");
+      refreshBtn.disabled = true;
+
       setTimeout(() => {
-        iframe.src = iframe.src;       // recarrega o dashboard
-        iframe.classList.remove("hidden"); // fade-in
-      }, 500);
-    }, refreshInterval);
+        iframe.src = iframe.src; // Recarrega o iframe
+      }, 300);
+
+      iframe.onload = () => {
+        iframe.classList.remove("hidden");
+        loading.classList.remove("visible");
+        refreshBtn.disabled = false;
+        refreshIcon.classList.remove("rotate");
+        showToast();
+      };
+    }
+
+    // Mostra o toast
+    function showToast() {
+      toast.classList.add("visible");
+      setTimeout(() => toast.classList.remove("visible"), 2000);
+    }
+
+    // Atalhos: F5, Ctrl+R ou tecla "A"
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "F5" || (e.ctrlKey && e.key.toLowerCase() === "r") || e.key.toLowerCase() === "a") {
+        e.preventDefault();
+        refreshDashboard();
+      }
+    });
+
+    // Clique no botão
+    refreshBtn.addEventListener("click", refreshDashboard);
   </script>
 
 </body>
 </html>
-
-
